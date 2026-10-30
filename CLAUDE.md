@@ -15,3 +15,7 @@ Read before building. When something breaks or Mike corrects a mistake, add one 
 
 - 2026-10-30: A bare `preventScreenSaver 1` crashes KOReader's AutoSuspend. Relic's meditation screen hit this and fixed it by also setting PluginShare.keepalive and pausing auto-suspend; copy that, don't write it fresh.
 - 2026-10-30: A check that has never failed proves nothing. After writing a test, break the thing on purpose and watch it fail. When breaking a recipe with sed, change one place only: a global replace changes the pull list and the steps together and the recipe stays consistent, so the test correctly passes.
+- 2026-10-30: `PluginShare` is a module: `local PluginShare = require("pluginshare")`. Used as a bare global it is nil and the first press of START crashed. Unit tests with injected fakes can't see this; only pressing every button in the emulator did. `test_safety.lua` now checks main.lua requires it.
+- 2026-10-30: VerticalGroup caches child offsets the first time you call `getSize()`; appending children afterwards crashes on paint (nil offset). Measure a group, then nest it inside a fresh VerticalGroup instead of appending to it. The alert card and error page both had this.
+- 2026-10-30: A checkpoint push to main counts as a push: plugin code went up before review. Keep unreviewed work on a local commit or a branch; main only gets plugin changes after tests, manifest bump, emulator run and the review.
+
