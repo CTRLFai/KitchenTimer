@@ -65,6 +65,7 @@ return {
             title = "Potatoes in the oven",
             dur = 0,
             text = "Spread the potatoes across both pans in a single layer, cut sides down where you can. Crowded potatoes steam instead of browning.\n\nIf the oven hasn't finished preheating, wait for it, then slide both pans in and tap Next. The oven tracker starts then.",
+            next_label = "Pans are in",
             tracker_start = "oven",
         },
         {

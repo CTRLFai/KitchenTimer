@@ -50,6 +50,11 @@ const WORDING = [
         return [...d.querySelectorAll(".ing")].map(e => clean(e.textContent)); })(),
       ovenStart: !!s.ovenStart, waitOven: !!s.waitOven,
     }));
+    // The button that starts a tracker has its own label on the phone ("Pans are in").
+    out.steps.forEach((s, i) => {
+      if (s.ovenStart) { S.started = true; S.finished = false; S.oven = "idle"; S.idx = i; render(true);
+        s.nextLabel = clean($("mainBtn").textContent); }
+    });
     // Pull list
     const grid = document.querySelectorAll("#pullList .pull-grid > div");
     out.pull = {};
@@ -121,6 +126,7 @@ const WORDING = [
     if (s.uses.length) o.uses = s.uses;
     // Portion steps split the batch across containers; the recipe check skips their amounts.
     if (/^\d+ portions\b/i.test(s.text)) o.portion = true;
+    if (s.nextLabel && s.nextLabel !== "Next") o.next_label = s.nextLabel;
     if (s.ovenStart) o.tracker_start = "oven";
     if (s.waitOven) o.wait_for = "oven";
     // Sentence that tells him what to do with the pan when a tracker alert lands mid-step.
