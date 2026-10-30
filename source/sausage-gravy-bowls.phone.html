@@ -1,0 +1,359 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Sausage Gravy Breakfast Bowls</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: sticky live panel (current step + countdown + oven tracker) over a scrolling step list */
+:root{
+  --bg:#f6f4ee; --surface:#ffffff; --fg:#25231e; --muted:#6d675c; --line:#e1dccf;
+  --accent:#7a5a1e; --accent-soft:#f1e8d4; --timer:#2f5d50; --timer-soft:#e2eeea;
+  --warn:#b4471f; --warn-soft:#fbe3d8;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a1915; --surface:#24221d; --fg:#ece7db; --muted:#a39b8c; --line:#39352d;
+  --accent:#dcb36a; --accent-soft:#382d18; --timer:#8fc6b4; --timer-soft:#1f322c;
+  --warn:#f09a76; --warn-soft:#3d2219; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1915; --surface:#24221d; --fg:#ece7db; --muted:#a39b8c; --line:#39352d;
+  --accent:#dcb36a; --accent-soft:#382d18; --timer:#8fc6b4; --timer-soft:#1f322c;
+  --warn:#f09a76; --warn-soft:#3d2219; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:680px;margin:0 auto;padding-block:20px 110px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--display);font-size:1.7rem;line-height:1.15;margin:0 0 4px;text-wrap:balance}
+.meta{color:var(--muted);font-size:.95rem;display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:14px}
+.meta b{color:var(--fg);font-weight:600}
+
+.live{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px 12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.row > div{min-width:0}
+.elapsed{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.stepno{color:var(--accent);font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
+.cur-title{font-family:var(--display);font-size:1.3rem;line-height:1.2;margin:2px 0 0}
+.clock{font-family:var(--display);font-size:2.6rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--timer)}
+.clock.over{color:var(--warn)}
+.clock.none{font-size:1rem;font-family:var(--body);color:var(--muted);font-weight:600}
+.cur-body{margin-top:8px;max-height:28vh;max-height:28dvh;overflow-y:auto;overscroll-behavior:contain}
+.live .card{max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px - env(safe-area-inset-top,0px));overflow-y:auto}
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
+  padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.actionbar .btns{max-width:680px;margin:0 auto}
+.cur-body p{margin:6px 0 0}
+.cur-body ul{margin:6px 0 0;padding-left:18px}
+.next{color:var(--muted);font-size:.92rem;margin-top:10px}
+.next b{color:var(--fg)}
+.btns{display:flex;gap:8px}
+button{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:12px 14px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);flex:1}
+button.small{padding:8px 12px;font-size:.9rem}
+.oven{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:var(--timer-soft);border-radius:10px;padding:10px 12px}
+.oven.alert{background:var(--warn-soft)}
+.oven .lbl{font-weight:700;font-size:.95rem}
+.oven .sub{font-size:.88rem;color:var(--muted)}
+.oven .t{font-weight:700;font-variant-numeric:tabular-nums;color:var(--timer)}
+.oven.alert .t{color:var(--warn)}
+.flash{animation:fl 1s ease-in-out 3}
+@keyframes fl{50%{box-shadow:0 0 0 4px var(--warn)}}
+@media (prefers-reduced-motion:reduce){.flash{animation:none}}
+
+h2{font-family:var(--display);font-size:1.1rem;margin:22px 0 8px;color:var(--accent)}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+li.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 12px 52px;position:relative}
+li.step .n{position:absolute;left:12px;top:11px;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-weight:700;display:grid;place-items:center;font-size:.9rem;font-variant-numeric:tabular-nums}
+li.step h3{margin:0;font-size:1rem}
+li.step .d{font-size:.95rem}
+li.step .d p{margin:4px 0 0}
+li.step .d ul{margin:4px 0 0;padding-left:18px}
+li.step.done{opacity:.5}
+li.step.done .n{background:var(--timer-soft);color:var(--timer)}
+li.step.now{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.dur{display:inline-block;background:var(--timer-soft);color:var(--timer);font-weight:700;font-size:.8rem;padding:1px 8px;border-radius:999px;margin-top:6px}
+.ing{font-weight:600}
+.confirm{margin-top:10px;font-size:.92rem}
+.pull{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.pull summary{font-weight:700;cursor:pointer;color:var(--accent)}
+.pull-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 20px;margin-top:8px}
+.pull h3{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:6px 0 4px}
+.pull ul{margin:0;padding-left:18px;font-size:.95rem}
+.reheat{margin-top:24px}
+.reheat h3{font-size:1rem;margin:14px 0 4px}
+.reheat h2{margin-top:0}
+.reheat ul{margin:0;padding-left:18px}
+</style>
+
+<div class="wrap">
+  <h1>Sausage Gravy Breakfast Bowls</h1>
+  <div class="meta"><span><b>8</b> servings (4 fridge, 4 freezer)</span><span>about <b>70 min</b> active</span><span>oven <b>425°F</b></span></div>
+
+  <details class="pull" id="pullList">
+    <summary>Pull these out before you start</summary>
+    <div class="pull-grid">
+      <div>
+        <h3>Food</h3>
+        <ul>
+          <li>2½ lb yellow potatoes</li>
+          <li>1 medium red onion</li>
+          <li>1 lb bulk breakfast sausage</li>
+          <li>9 eggs</li>
+          <li>3 cups + 3 Tbsp milk (whole is best)</li>
+          <li>⅓ cup flour</li>
+          <li>4 oz colby jack (1 cup shredded)</li>
+          <li>Chives (3 Tbsp chopped)</li>
+          <li>3 Tbsp + 1 tsp oil</li>
+          <li>1 Tbsp butter, plus 1 to 2 Tbsp backup</li>
+          <li>Salt, black pepper, garlic powder</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Gear</h3>
+        <ul>
+          <li>2 rimmed sheet pans</li>
+          <li>Large skillet (gravy)</li>
+          <li>Second skillet, nonstick if you have one (eggs)</li>
+          <li>Big mixing bowl, small bowl</li>
+          <li>4 meal-prep containers + 4 small gravy containers</li>
+          <li>4 quart freezer bags + 4 sandwich freezer bags</li>
+          <li>Marker for labels</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <section class="live" aria-live="polite">
+    <div class="card" id="liveCard">
+      <div class="row">
+        <div>
+          <div class="stepno" id="stepNo">Ready</div>
+          <div class="cur-title" id="curTitle">Press Start when you're in the kitchen</div>
+        </div>
+        <div class="clock none" id="clock">-</div>
+      </div>
+      <div class="oven" id="oven" hidden>
+        <div><div class="lbl" id="ovenLbl"></div><div class="sub" id="ovenSub"></div></div>
+        <div class="row" style="gap:8px"><span class="t" id="ovenT"></span><button class="small" id="ovenMore" hidden>+3 min</button><button class="small" id="ovenBtn" hidden></button></div>
+      </div>
+      <div class="cur-body" id="curBody"></div>
+      <div class="next" id="nextLine"></div>
+      <div class="elapsed" id="elapsed" style="margin-top:8px"></div>
+      <div class="confirm"><button class="small" id="resetBtn" hidden>Start over</button>
+        <span id="resetConfirm" hidden>Clear progress? <button class="small" id="resetYes">Yes, start over</button> <button class="small" id="resetNo">Cancel</button></span></div>
+    </div>
+  </section>
+
+  <div class="actionbar">
+    <div class="btns">
+      <button id="backBtn" hidden>Back</button>
+      <button class="primary" id="mainBtn">Start</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <section class="reheat">
+    <h2>Storage and reheating</h2>
+    <h3>Fridge (4 servings)</h3>
+    <ul>
+      <li>Eat within 4 days.</li>
+      <li><b>Bowl:</b> lid cracked, microwave 1½ to 2 min, stirring halfway. Or air fry the potatoes at 375°F for 5 min for crisp edges.</li>
+      <li><b>Gravy:</b> it sets up thick in the fridge. Add a splash of milk, microwave 45 to 60 sec, stir, pour over.</li>
+    </ul>
+    <h3>Freezer (4 servings)</h3>
+    <ul>
+      <li>Best within 2 months.</li>
+      <li><b>Thaw:</b> move a bowl bag and a gravy bag to the fridge the night before.</li>
+      <li><b>Bowl:</b> empty into a microwave-safe bowl, cover loosely, microwave 2 to 2½ min, stirring halfway.</li>
+      <li><b>Gravy:</b> it may look grainy or separated after freezing. Add a splash of milk, microwave 1 min, and stir hard. It comes back smooth.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ROAST1 = 18*60;  // to the flip
+const ROAST2 = 18*60;  // flip to first doneness check (36 min total, recipe range 35 to 40)
+const STEPS = [
+  {g:"Set up", t:"Oven on", dur:0,
+   b:`<p>Preheat to <b>425°F</b>. Racks in the upper-middle and lower-middle slots. Everything you need is in the list at the top of the page.</p>`},
+  {g:"Set up", t:"Cut the potatoes", dur:9*60,
+   b:`<p>Cut <span class="ing">2½ lb yellow potatoes</span> into ¾-inch cubes. No need to peel. Into a big bowl.</p>
+   <p>Toss with <span class="ing">3 Tbsp oil</span>, <span class="ing">1 tsp salt</span>, <span class="ing">1 tsp garlic powder</span>, <span class="ing">½ tsp pepper</span>.</p>`},
+  {g:"Set up", t:"Onion and chives", dur:3*60,
+   b:`<ul><li>Cut <span class="ing">1 medium red onion</span> into ¾-inch chunks. Toss in a small bowl with <span class="ing">1 tsp oil</span> and a pinch of salt. This goes in at the flip.</li>
+   <li>Chop <span class="ing">3 Tbsp chives</span>. Set aside for the end.</li></ul>`},
+  {g:"Set up", t:"Potatoes in the oven", dur:0, ovenStart:true,
+   b:`<p>Spread the potatoes across both pans in a single layer, cut sides down where you can. Crowded potatoes steam instead of browning.</p>
+   <p>If the oven hasn't finished preheating, wait for it, then slide both pans in and tap <b>Next</b>. The oven tracker starts then.</p>`},
+  {g:"Gravy", t:"Brown the sausage", dur:8*60,
+   b:`<p><span class="ing">1 lb bulk breakfast sausage</span> (if it's links, squeeze it out of the casings) in the large skillet over medium-high. Break it into small crumbles. Cook until no pink remains and some bits are browned.</p>
+   <p><b>Don't drain.</b> The fat is what cooks the flour. If the pan looks dry, add <span class="ing">1 to 2 Tbsp butter</span>.</p>`},
+  {g:"Gravy", t:"Cook the flour", dur:2*60,
+   b:`<p>Drop to medium. Sprinkle <span class="ing">⅓ cup flour</span> over the sausage and stir until no dry flour shows. Keep stirring so the flour loses its raw taste.</p>`},
+  {g:"Gravy", t:"Add the milk", dur:8*60,
+   b:`<p>Pour in <span class="ing">3 cups milk</span> about a cup at a time, stirring as you go so it doesn't clump. Bring to a gentle bubble and stir often.</p>
+   <p>Season with <span class="ing">1 tsp black pepper</span>. Taste before adding salt; the sausage is already salty. Start with <span class="ing">¼ tsp salt</span>.</p>
+   <p>Done when it coats the back of a spoon. It thickens a lot as it cools, so stop a little looser than you'd serve it.</p>
+   <p><b>The flip lands near the end of this step.</b> When the oven tracker chimes, turn the gravy to low, flip the potatoes, then come back and keep stirring.</p>`},
+  {g:"Gravy", t:"Gravy off to cool", dur:2*60,
+   b:`<p>Heat off. Pour the gravy into a container and leave it uncovered to cool.</p>`},
+  {g:"Eggs", t:"Whisk the eggs", dur:2*60,
+   b:`<p>Whisk <span class="ing">9 eggs</span>, <span class="ing">3 Tbsp milk</span>, <span class="ing">¼ tsp salt</span>, and a pinch of pepper until no streaks of white remain.</p>`},
+  {g:"Eggs", t:"Scramble", dur:5*60,
+   b:`<p><span class="ing">1 Tbsp butter</span> in the second skillet over medium-low. Add the eggs and push them slowly from the edges to the middle with a spatula.</p>
+   <p><b>Pull them while they still look slightly wet.</b> They finish cooking when you reheat, and fully cooked eggs go rubbery. Slide onto a plate to cool.</p>`},
+  {g:"Finish", t:"Wait for the potatoes", dur:0, waitOven:true,
+   b:`<p>Shred <span class="ing">1 cup colby jack</span> (about 4 oz) if it isn't already. Wash the gravy skillet. Set out the containers and bags, and label the bags with today's date.</p>
+   <p>Tap <b>Next</b> once the oven tracker says the potatoes are out.</p>`},
+  {g:"Finish", t:"Cool the potatoes", dur:10*60,
+   b:`<p>Leave them on the pans. Steam trapped under a lid makes them soggy, so let them stop steaming before they go in containers.</p>`},
+  {g:"Finish", t:"Portion it", dur:0,
+   b:`<p>8 portions: 4 into meal-prep containers, 4 into quart freezer bags.</p>
+   <ul><li>Potatoes and onion, divided evenly (about ¾ cup each).</li>
+   <li>Eggs on top, divided evenly (about 1 egg's worth each).</li>
+   <li>About <span class="ing">2 Tbsp colby jack</span> and a pinch of chives on each.</li>
+   <li>Gravy stays separate: about ½ cup each into the 4 small containers and the 4 sandwich freezer bags.</li></ul>
+   <p>Lid the containers, but leave the bags unsealed for now. Everything goes in the fridge.</p>`},
+  {g:"Finish", t:"Move the bags to the freezer", dur:60*60,
+   b:`<p>This timer chimes in <b>1 hour</b>, once the bags have chilled in the fridge. Warm food in a sealed bag frosts up inside.</p>
+   <p>Press out the air, seal, and lay the bags flat in the freezer. Once they're frozen solid you can stand them up like files.</p>`},
+];
+
+const KEY="sgb-cook-v1";
+let S = load() || fresh();
+// a run older than 6 hours is a previous cook day: start clean
+if(S.started && Date.now()-S.runStart > 6*3600*1000){S=fresh();}
+function fresh(){return {started:false, idx:0, stepStart:0, runStart:0, oven:"idle", ovenTarget:0, chimedStep:-1, chimedOven:"", finished:false, finishedAt:0};}
+function load(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const fmt=s=>{s=Math.max(0,Math.round(s));const m=Math.floor(s/60),x=s%60;return m+":"+String(x).padStart(2,"0")};
+const durLabel=d=>d>=120?Math.round(d/60)+" min":fmt(d);
+
+(function buildList(){
+  let html="",grp="";
+  STEPS.forEach((s,i)=>{
+    if(s.g!==grp){ if(grp) html+="</ol>"; grp=s.g; html+=`<h2>${s.g}</h2><ol>`; }
+    html+=`<li class="step" id="s${i}"><span class="n">${i+1}</span><h3>${s.t}</h3><div class="d">${s.b}</div>${s.dur?`<span class="dur">${durLabel(s.dur)}</span>`:""}</li>`;
+  });
+  $("list").innerHTML=html+"</ol>";
+})();
+
+let actx=null, wake=null;
+function initAudio(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}}
+function chime(){
+  try{if(actx){const t=actx.currentTime;
+    [0,0.35,0.7].forEach((d,k)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=k==2?1046:880;
+      g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.4,t+d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.3);
+      o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+0.32);});}
+  }catch(e){}
+  try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+}
+async function keepAwake(){try{if("wakeLock" in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>wake=null)}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.started&&!S.finished)keepAwake()});
+function flash(el){el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash")}
+
+function enterStep(){S.chimedStep=-1;}
+$("mainBtn").onclick=()=>{
+  initAudio(); keepAwake();
+  const now=Date.now();
+  if(!S.started){S.started=true;S.runStart=now;S.idx=0;S.stepStart=now;enterStep();
+    try{document.querySelector(".live").scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}}
+  else if(S.finished){return;}
+  else {
+    const cur=STEPS[S.idx];
+    if(cur.ovenStart&&S.oven==="idle"){S.oven="roast1";S.ovenTarget=now+ROAST1*1000;S.chimedOven="";}
+    if(S.idx<STEPS.length-1){S.idx++;S.stepStart=now;enterStep();}
+    else {S.finished=true;S.finishedAt=now;}
+  }
+  save();render(true);
+};
+$("backBtn").onclick=()=>{if(S.idx>0){S.idx--;S.stepStart=Date.now();S.chimedStep=-1;S.finished=false;save();render(true)}};
+$("ovenBtn").onclick=()=>{
+  initAudio(); const now=Date.now();
+  if(S.oven==="flip"){S.oven="roast2";S.ovenTarget=now+ROAST2*1000;S.chimedOven="";}
+  else if(S.oven==="check"){S.oven="done";}
+  save();render(true);
+};
+$("ovenMore").onclick=()=>{S.oven="roast2";S.ovenTarget=Date.now()+180*1000;S.chimedOven="";save();render(true)};
+$("resetBtn").onclick=()=>{$("resetBtn").hidden=true;$("resetConfirm").hidden=false};
+$("resetNo").onclick=()=>{$("resetConfirm").hidden=true;$("resetBtn").hidden=false};
+$("resetYes").onclick=()=>{S=fresh();save();$("resetConfirm").hidden=true;render(true)};
+
+function renderOven(now){
+  const box=$("oven"), btn=$("ovenBtn"), more=$("ovenMore");
+  if(S.oven==="idle"){box.hidden=true;return;}
+  box.hidden=false; more.hidden=true; btn.hidden=true; box.classList.remove("alert");
+  const left=(S.ovenTarget-now)/1000;
+  if(S.oven==="roast1"&&left<=0){S.oven="flip";}
+  if(S.oven==="roast2"&&left<=0){S.oven="check";}
+  if((S.oven==="flip"||S.oven==="check")&&S.chimedOven!==S.oven){S.chimedOven=S.oven;save();chime();flash($("liveCard"));}
+  if(S.oven==="roast1"){
+    $("ovenLbl").textContent="Potatoes roasting";$("ovenSub").textContent="Flip and add onion in";$("ovenT").textContent=fmt(left);
+  } else if(S.oven==="flip"){
+    box.classList.add("alert");
+    $("ovenLbl").textContent="Flip the potatoes now";
+    $("ovenSub").textContent="Flip with a spatula, scatter the onion over both pans, swap the pans between racks.";
+    $("ovenT").textContent="";btn.hidden=false;btn.textContent="Flipped";
+  } else if(S.oven==="roast2"){
+    $("ovenLbl").textContent="Potatoes, second half";$("ovenSub").textContent="Doneness check in";$("ovenT").textContent=fmt(left);
+  } else if(S.oven==="check"){
+    box.classList.add("alert");
+    $("ovenLbl").textContent="Check the potatoes";
+    $("ovenSub").textContent="Done when the edges are golden and a fork slides in easily.";
+    $("ovenT").textContent="";btn.hidden=false;btn.textContent="Out of oven";more.hidden=false;
+  } else if(S.oven==="done"){
+    $("ovenLbl").textContent="Potatoes out";$("ovenSub").textContent="Oven off.";$("ovenT").textContent="✓";
+  }
+}
+
+function render(force){
+  const now=Date.now();
+  STEPS.forEach((s,i)=>{const el=$("s"+i);el.classList.toggle("done",S.started&&(i<S.idx||S.finished));el.classList.toggle("now",S.started&&!S.finished&&i===S.idx)});
+  $("backBtn").hidden=!S.started||S.idx===0||S.finished;
+  $("resetBtn").hidden=!S.started||!$("resetConfirm").hidden;
+
+  if(!S.started){
+    $("stepNo").textContent="Ready";$("curTitle").textContent="Press Start when you're in the kitchen";
+    $("clock").className="clock none";$("clock").textContent="-";
+    if(force)$("curBody").innerHTML=`<p>The timer runs on real time, so it stays accurate if your screen locks. Each step chimes when its time is up; tap <b>Next</b> to move on. The oven tracker runs on its own and chimes for the flip and the doneness check.</p>`;
+    $("nextLine").innerHTML=`First: <b>${STEPS[0].t}</b>`;$("mainBtn").textContent="Start";$("mainBtn").disabled=false;
+    $("elapsed").textContent="";$("oven").hidden=true;return;
+  }
+  $("elapsed").textContent="Total elapsed "+fmt(((S.finished?S.finishedAt:now)-S.runStart)/1000);
+  renderOven(now);
+
+  if(S.finished){
+    $("stepNo").textContent="Done";$("curTitle").textContent="Packed";$("clock").className="clock none";$("clock").textContent="";
+    if(force)$("curBody").innerHTML="<p>4 breakfasts in the fridge, 4 in the freezer. Storage and reheating notes are at the bottom of the page.</p>";
+    $("nextLine").innerHTML="";$("mainBtn").textContent="Finished";$("mainBtn").disabled=true;return;
+  }
+  const s=STEPS[S.idx], el=(now-S.stepStart)/1000;
+  $("stepNo").textContent=`Step ${S.idx+1} of ${STEPS.length} · ${s.g}`;
+  $("curTitle").textContent=s.t;
+  if(force)$("curBody").innerHTML=s.b;
+  const c=$("clock");
+  if(s.dur){const left=s.dur-el;
+    if(left>=0){c.className="clock";c.textContent=fmt(left);}
+    else{c.className="clock over";c.textContent="+"+fmt(-left);}
+    if(left<=0&&S.chimedStep!==S.idx){S.chimedStep=S.idx;save();chime();flash($("liveCard"));}
+  } else if(s.waitOven&&S.oven!=="done"){c.className="clock none";c.textContent="Watch the oven tracker";}
+  else {c.className="clock none";c.textContent="Do it, then Next";}
+  const n=STEPS[S.idx+1];
+  $("nextLine").innerHTML=n?`Next: <b>${n.t}</b>${n.dur?" · "+durLabel(n.dur):""}`:"Last step";
+  $("mainBtn").textContent=S.idx===STEPS.length-1?"Finish":(s.ovenStart&&S.oven==="idle"?"Pans are in":"Next");
+  $("mainBtn").disabled=!!(s.waitOven&&S.oven!=="done");
+}
+render(true);
+setInterval(()=>render(false),500);
+</script>
+
+</body></html>
