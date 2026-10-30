@@ -23,6 +23,9 @@ const WORDING = [
   [/oven tracker says/gi, "oven tracker shows"],
   [/at the bottom of the page/gi, "on the next screen"],
   [/in the list at the top of the page/gi, "on the Pull these out screen"],
+  // The Kindle's button is labelled for the action ("Pans are in") or locked until the tracker allows it.
+  [/tap Next\. The oven tracker starts then\./gi, "tap Pans are in. The oven tracker starts then."],
+  [/Tap Next once the oven tracker shows the potatoes are out\./gi, "Next unlocks once the oven tracker shows the potatoes are out."],
 ];
 
 (async () => {

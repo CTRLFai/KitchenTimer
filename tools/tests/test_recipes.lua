@@ -215,6 +215,12 @@ for _, path in ipairs(files) do
             if low:find(w, 1, true) then bad(slug, "phone-only wording '" .. w .. "': " .. s:sub(1, 60)) end
         end
     end
+    -- The text must not tell him to tap a button that is named differently or locked on this step.
+    for i, st in ipairs(r.steps) do
+        if (st.next_label or st.wait_for) and st.text:lower():find("tap next", 1, true) then
+            bad(slug, "step " .. i .. " says 'tap Next' but its button is " .. (st.next_label and ("'" .. st.next_label .. "'") or "locked until the tracker allows it"))
+        end
+    end
     check(slug, r)
     if #problems == before then
         print(string.format("  %s: %d steps, header about %d min, clean", slug, #r.steps, T.header_minutes(r)))

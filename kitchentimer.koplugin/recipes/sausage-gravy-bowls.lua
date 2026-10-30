@@ -64,7 +64,7 @@ return {
             group = "Set up",
             title = "Potatoes in the oven",
             dur = 0,
-            text = "Spread the potatoes across both pans in a single layer, cut sides down where you can. Crowded potatoes steam instead of browning.\n\nIf the oven hasn't finished preheating, wait for it, then slide both pans in and tap Next. The oven tracker starts then.",
+            text = "Spread the potatoes across both pans in a single layer, cut sides down where you can. Crowded potatoes steam instead of browning.\n\nIf the oven hasn't finished preheating, wait for it, then slide both pans in and tap Pans are in. The oven tracker starts then.",
             next_label = "Pans are in",
             tracker_start = "oven",
         },
@@ -129,7 +129,7 @@ return {
             group = "Finish",
             title = "Wait for the potatoes",
             dur = 0,
-            text = "Shred 1 cup colby jack (about 4 oz) if it isn't already. Wash the gravy skillet. Set out the containers and bags, and label the bags with today's date.\n\nTap Next once the oven tracker shows the potatoes are out.",
+            text = "Shred 1 cup colby jack (about 4 oz) if it isn't already. Wash the gravy skillet. Set out the containers and bags, and label the bags with today's date.\n\nNext unlocks once the oven tracker shows the potatoes are out.",
             uses = {
                 "1 cup colby jack",
             },

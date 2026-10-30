@@ -119,8 +119,9 @@ function CookScreen:paintTo(bb, x, y)
 end
 
 local function bigButton(o, registry)
-    local btn = Button:new{
-        text = o.text, width = o.w, height = BAR_H - 8, bordersize = o.thick and 6 or 3, padding_v = 0,
+    local border = o.thick and 6 or 3
+    local btn = Button:new{   -- height is the inside; the border adds to it, so subtract it to keep every button 148 px tall
+        text = o.text, width = o.w, height = (BAR_H - 2) - 2 * border, bordersize = border, padding_v = 0,
         padding_h = Screen:scaleBySize(6), margin = 0, text_font_size = o.size or 24, text_font_bold = true,
         enabled = o.enabled ~= false, callback = o.cb,
     }
@@ -366,9 +367,9 @@ function CookScreen:buildAlert(alert, now)
         stack[#stack + 1] = gap(14)
     end
     local free = self.dimen.h - used - stack:getSize().h - 14
-    group[#group + 1] = gap(math.max(free, 8))
-    group[#group + 1] = stack
-    return frame(group)
+    -- group was measured, and VerticalGroup caches child offsets when measured, so append nothing to it:
+    -- nest it in a fresh group instead (appending after getSize() crashed on paint).
+    return frame(VerticalGroup:new{ align = "left", group, gap(math.max(free, 8)), stack })
 end
 
 -- Pull / storage / finish pages ----------------------------------------------------------------------
@@ -386,8 +387,18 @@ function CookScreen:scrollPage(title_text, sub_text, body_text, bar)
         used = used + 6 + sub:getSize().h
     end
     local text_h = math.max(H - used - 8 - 8, 140)
+    -- Longer than the box? Say so, so nobody misses the gear list below the fold.
+    local probe = TextBoxWidget:new{ text = body_text, face = F(25), width = CW }
+    local overflows = probe:getSize().h > text_h
+    probe:free()
+    local hint
+    if overflows then
+        hint = TextBoxWidget:new{ text = "More below: swipe up, or tap the right side", face = F(19, true), width = CW }
+        text_h = math.max(text_h - hint:getSize().h - 8, 140)
+    end
     self.scroll = ScrollTextWidget:new{ text = body_text, face = F(25), width = CW, height = text_h, dialog = self }
     group[#group + 1] = gap(8); group[#group + 1] = self.scroll
+    if hint then group[#group + 1] = gap(8); group[#group + 1] = hint end
     group[#group + 1] = gap(8); group[#group + 1] = bar
     return frame(group)
 end
@@ -400,7 +411,7 @@ end
 
 function CookScreen:buildPull()
     local R, S = self.recipe, self.S
-    local sub = string.format("%d servings (%s)  \194\183  about %d min  \194\183  oven %s", R.servings, R.servings_note or "",
+    local sub = string.format("%d servings (%s)\nabout %d min  \194\183  oven %s", R.servings, R.servings_note or "",
         Timeline.header_minutes(R), R.oven or "")
     local body = "FOOD\n" .. bullets(R.pull.food) .. "\n\nGEAR\n" .. bullets(R.pull.gear)
     local bar
@@ -450,9 +461,9 @@ function CookScreen:buildError()
         TextBoxWidget:new{ text = "Something went wrong", face = F(34, true), width = CW }, gap(16),
         TextBoxWidget:new{ text = "Your place is saved. Leave and open the recipe again to carry on.\n\n" .. tostring(self.last_error or ""),
             face = F(22), width = CW } }
-    group[#group + 1] = gap(math.max(self.dimen.h - group:getSize().h - BAR_H - 40, 8))
-    group[#group + 1] = self:buttonRow{ { text = "LEAVE", cb = function() self:close() end, thick = true } }
-    return frame(group)
+    local free = math.max(self.dimen.h - group:getSize().h - BAR_H - 40, 8)
+    return frame(VerticalGroup:new{ align = "left", group, gap(free),   -- nested: a measured group can't take more children
+        self:buttonRow{ { text = "LEAVE", cb = function() self:close() end, thick = true } } })
 end
 
 -- Actions ------------------------------------------------------------------------------------------

@@ -112,6 +112,8 @@ function Kitchen:openPicker()
         title = _("Kitchen Timer"),
         item_table = items,
         is_borderless = true,
+        items_per_page = 6,
+        is_enable_shortcut = false,
         is_popout = false,
         covers_fullscreen = true,
         close_callback = function()
