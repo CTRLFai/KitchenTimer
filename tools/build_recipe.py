@@ -48,6 +48,7 @@ OUT_DIR = os.path.join(ROOT, "kitchentimer.koplugin", "recipes")
 
 FRACTIONS = {"1/2": "\u00bd", "1/3": "\u2153", "2/3": "\u2154", "1/4": "\u00bc", "3/4": "\u00be"}
 EM_DASH = "\u2014"
+LUA_KEYWORDS = set("and break do else elseif end false for function goto if in local nil not or repeat return then true until while".split())
 
 
 class RecipeError(Exception):
@@ -224,7 +225,7 @@ def parse(md, slug_from_file):
                 raise RecipeError(f"pull list sections are '### Food' and '### Gear', got '### {head}'")
             pull[key] = bullets(body, f"pull list {head}")
         elif part == "trackers":
-            m = re.match(r"^(\w+):\s*(.+)$", head)
+            m = re.match(r"^([a-z][a-z0-9_]*):\s*(.+)$", head)
             if not m:
                 raise RecipeError(f"tracker heading must be '### id: Name', got '{head}'")
             stages = [parse_stage(ln[2:], f"tracker {m.group(1)}") for ln in body if ln.startswith("- ")]
@@ -253,10 +254,15 @@ def parse(md, slug_from_file):
             for b in s.get("buttons", []):
                 if b["to"] not in ids:
                     raise RecipeError(f"tracker {tid}: button '{b['label']}' goes to unknown stage '{b['to']}'")
+    started = set()
     for i, s in enumerate(steps, 1):
         for k in ("tracker_start", "wait_for"):
             if k in s and s[k] not in trackers:
                 raise RecipeError(f"step {i}: unknown tracker '{s[k]}'")
+        if "wait_for" in s and s["wait_for"] not in started:
+            raise RecipeError(f"step {i}: waits for tracker '{s['wait_for']}' before any step starts it")
+        if "tracker_start" in s:
+            started.add(s["tracker_start"])
 
     r["pull"] = {"food": pull["food"], "gear": pull["gear"]}
     r["steps"] = steps
@@ -281,7 +287,9 @@ def lua(v, ind=0):
             return "{}"
         return "{\n" + "".join(pad2 + lua(x, ind + 1) + ",\n" for x in v) + pad + "}"
     if isinstance(v, dict):
-        return "{\n" + "".join(f"{pad2}{k} = {lua(x, ind + 1)},\n" for k, x in v.items()) + pad + "}"
+        def key(k):   # a key that isn't a plain Lua name (a keyword like "end", or "2pan") gets brackets
+            return k if re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", k) and k not in LUA_KEYWORDS else "[" + lua(k) + "]"
+        return "{\n" + "".join(f"{pad2}{key(k)} = {lua(x, ind + 1)},\n" for k, x in v.items()) + pad + "}"
     raise TypeError(type(v))
 
 

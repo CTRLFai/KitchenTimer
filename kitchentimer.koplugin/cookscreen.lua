@@ -255,6 +255,7 @@ function CookScreen:buildStep(now)
             local inner = HorizontalGroup:new{ align = "center", info }
             if clk_w > 0 then
                 local box = ClockBox:new{ w = clk_w, h = 60, size = 38, text = fmt(v.left) }
+                box.stage_id = v.stage.id   -- a new stage, even another timed one, redraws the band
                 self.tracker_clocks[id] = box
                 inner[#inner + 1] = HorizontalSpan:new{ width = 12 }; inner[#inner + 1] = box
             end
@@ -474,9 +475,19 @@ function CookScreen:save()
 end
 
 -- Keep-awake and ticking follow the run: held while a cook is running, released otherwise.
+-- Hold or release keep-awake by the timeline's rule (timers running, alert unanswered, or a recent touch).
+function CookScreen:applyAwake(now)
+    if not self.errored and self.alive and Timeline.needs_awake(self.S, self.recipe, now or os.time(), self.last_touch, self.quiet) then
+        self.keepawake:on()
+    else
+        self.keepawake:off()
+    end
+end
+
 function CookScreen:afterChange()
     local running = self.S.started and not self.S.finished
-    if running and not self.quiet and not self.errored then self.keepawake:on() else self.keepawake:off() end
+    self.last_touch = os.time()   -- every user action passes through here
+    self:applyAwake()
     UIManager:unschedule(self.tick_fn)
     if running and self.alive then UIManager:scheduleIn(TICK, self.tick_fn) end
 end
@@ -582,6 +593,7 @@ function CookScreen:tick()
     if not self.alive then return end
     local ok, err = pcall(self.tickInner, self)
     if not ok then self:fail("tick", err) end
+    pcall(self.applyAwake, self)
     local S = self.S
     UIManager:unschedule(self.tick_fn)   -- a render inside the tick may already have scheduled the next one
     if self.alive and S.started and not S.finished and not self.errored then UIManager:scheduleIn(TICK, self.tick_fn) end
@@ -602,7 +614,6 @@ function CookScreen:tickInner()
             self.alert_key, self.alert_first, self.last_pulse, self.quiet = key, now, nil, false
             if self.dialog then UIManager:close(self.dialog); self.dialog = nil end
             self:render("full")
-            self.keepawake:on()
         end
         if Timeline.pulse_due(self.alert_first, self.last_pulse, now) then
             if self.pulse:flash() then self.last_pulse = now end
@@ -629,7 +640,7 @@ function CookScreen:tickInner()
     end
     for id, box in pairs(self.tracker_clocks) do
         local v = Timeline.tracker_view(S, R, id, now)
-        if v and v.left then
+        if v and v.left and v.stage.id == box.stage_id then
             local t = fmt(v.left)
             if t ~= box.text then box.text = t; self:refreshBox(box) end
         else
@@ -673,6 +684,10 @@ end
 
 function CookScreen:onResume()
     if not self.alive then return end
+    if self.errored then   -- keep the error page (and its way out) instead of a frozen step page
+        UIManager:setDirty(self, "full")
+        return
+    end
     self.alert_key, self.quiet = nil, false   -- an alert still waiting gets its pulses again
     local ok, err = pcall(function() self:render("full"); self:afterChange(); self:tick() end)
     if not ok then self:fail("resume", err) end

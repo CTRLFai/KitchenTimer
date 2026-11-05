@@ -53,7 +53,10 @@ local function loadRecipes()
         local slug = name:match("^(.+)%.lua$")
         if slug then
             local ok, r = pcall(dofile, dir .. "/" .. name)
-            if ok and type(r) == "table" and r.slug == slug and r.title and type(r.steps) == "table" and #r.steps > 0 then
+            -- A recipe the timeline can't plan (say a step waits on a tracker that never started) would
+            -- throw inside the picker and take KOReader down, so it is skipped here like a broken file.
+            if ok and type(r) == "table" and r.slug == slug and r.title and type(r.steps) == "table" and #r.steps > 0
+                and pcall(Timeline.header_minutes, r) then
                 list[#list + 1] = r
             else
                 logger.warn("Kitchen Timer: skipping recipe", name, ok and "(not a recipe)" or tostring(r))

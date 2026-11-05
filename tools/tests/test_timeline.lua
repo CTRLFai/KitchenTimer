@@ -191,4 +191,28 @@ do
     assert(not pcall(T.plan, bad), "waiting on a tracker that never starts is an error")
 end
 
+do -- keep-awake ceiling: awake only while something is coming, never forever on an idle step
+    local S = T.new("fixture")
+    eq(T.needs_awake(S, R, t0, t0, false), false, "not started")
+    T.start(S, t0)
+    eq(T.needs_awake(S, R, t0 + 30, t0, false), true, "step A countdown running")
+    -- step A ran out and its alert was acknowledged: no countdown, no tracker; only the touch keeps it awake
+    S.step_ack = S.idx
+    local idle = t0 + 60 + 1
+    eq(T.needs_awake(S, R, idle, idle - 60, false), true, "touched a minute ago")
+    eq(T.needs_awake(S, R, idle + T.IDLE_AWAKE, idle - 60, false), false, "walked away: released after IDLE_AWAKE")
+    -- a running tracker keeps it awake with nobody touching it (its alert is coming)
+    T.next(S, R, t0 + 70); T.next(S, R, t0 + 80)   -- leave "Pans in": tracker starts
+    S.step_ack = S.idx   -- step C's own timer is answered, so only the tracker is left
+    eq(T.needs_awake(S, R, t0 + 500, t0 - 9999, false), true, "tracker counting down")
+    -- the tracker alert (the screen ticks the engine every second before asking): awake until it goes quiet
+    T.tick(S, R, t0 + 80 + 600 + 5)
+    eq(T.needs_awake(S, R, t0 + 80 + 600 + 5, t0 - 9999, false), true, "alert unanswered")
+    eq(T.needs_awake(S, R, t0 + 80 + 600 + 5, t0 - 9999, true), false, "alert gone quiet")
+    -- hard ceiling: never past RESET_AFTER from Start, whatever else is going on
+    eq(T.needs_awake(S, R, t0 + T.RESET_AFTER + 1, t0 + T.RESET_AFTER, false), false, "6 hours")
+    S.finished = true
+    eq(T.needs_awake(S, R, t0 + 100, t0 + 100, false), false, "finished")
+end
+
 print("ok test_timeline")

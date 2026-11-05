@@ -39,4 +39,9 @@ must_fail(src.replace("Dinner is", "Dinner — is"), "em dash")
 must_fail(src.replace("slug: broiled-test", "slug: other"), "doesn't match")
 must_fail(src.replace("(3 min)", "(3 minz)"), "duration")
 must_fail(src.replace("- 1/2 tsp salt", "- 1/2 tsp salt\n- 1 cup chicken broth"), "bouillon paste")
+# a step that waits on a tracker before it is started would crash the plugin's planner
+must_fail(src.replace("Move a rack 6 inches below the broiler and turn the broiler to high.",
+    "Move a rack 6 inches below the broiler and turn the broiler to high.\nWait: oven"), "before any step starts it")
+must_fail(src.replace("### oven: Pork", "### Oven: Pork"), "tracker heading")
+assert B.lua({"end": 1, "ok": 2}) == '{\n    ["end"] = 1,\n    ok = 2,\n}', B.lua({"end": 1, "ok": 2})
 print("ok test_build_recipe")

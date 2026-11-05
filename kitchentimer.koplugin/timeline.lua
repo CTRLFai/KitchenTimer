@@ -269,4 +269,22 @@ function Timeline.header_minutes(recipe)
     return math.floor(Timeline.plan(recipe).total / 60 + 0.5)
 end
 
+-- Keep-awake policy. The Kindle stays awake only while something is coming that needs the screen:
+-- a step or tracker countdown still running, an alert nobody has answered yet (until it goes
+-- quiet), or a touch in the last IDLE_AWAKE seconds. Never past RESET_AFTER from Start. Without
+-- this ceiling, walking away from an untimed step kept the Kindle awake until the battery died.
+Timeline.IDLE_AWAKE = 15 * 60
+function Timeline.needs_awake(S, recipe, now, last_touch, quiet)
+    if not S.started or S.finished then return false end
+    if now - S.run_start > Timeline.RESET_AFTER then return false end
+    if Timeline.active_alert(S, recipe, now) then return not quiet end
+    local left = Timeline.step_left(S, recipe, now)
+    if left and left > 0 then return true end
+    for id in pairs(recipe.trackers or {}) do
+        local v = Timeline.tracker_view(S, recipe, id, now)
+        if v and v.left and v.left > 0 then return true end
+    end
+    return now - (last_touch or 0) < Timeline.IDLE_AWAKE
+end
+
 return Timeline

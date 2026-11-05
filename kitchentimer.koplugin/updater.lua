@@ -130,17 +130,19 @@ function Updater.checkInner(force)
     local st = store()
     local today = os.date("%Y-%m-%d")
     if not force and st:readSetting("last_check") == today then return "skipped" end
-    if not force and not NetworkMgr:isConnected() then return "offline" end
+    if not NetworkMgr:isConnected() then return "offline" end
 
     local mstr = fetch(cfg, "kitchentimer.koplugin/manifest.lua")
     if not mstr then return "failed" end
-    st:saveSetting("last_check", today); st:flush()
     local remote = loadManifestString(mstr)
     if not remote then logger.warn("Kitchen Timer updater: bad manifest"); return "failed" end
 
     local rv = tonumber(remote.version)
     local held = tonumber(st:readSetting("held_version")) or 0
-    if rv <= Updater.installedVersion() or rv <= held then return "current", rv end
+    if rv <= Updater.installedVersion() or rv <= held then
+        st:saveSetting("last_check", today); st:flush()   -- only a check that worked counts for the day
+        return "current", rv
+    end
 
     -- Download everything into staging and verify it.
     local staging = stagingDir()
@@ -163,16 +165,38 @@ function Updater.checkInner(force)
     local mout = io.open(staging .. "/manifest.lua", "wb")
     mout:write(mstr); mout:close()
 
-    -- Swap: current -> previous, staging -> current.
-    purge(previousDir())
+    -- Every Lua file must at least compile. A release that doesn't would make KOReader drop the
+    -- plugin, and with it the menu that holds Roll back.
+    for _, f in ipairs(remote.files) do
+        if f.path:match("%.lua$") then
+            local fn, perr = loadfile(staging .. "/" .. f.path)
+            if not fn then
+                logger.warn("Kitchen Timer updater: release does not compile, not installing", perr)
+                purge(staging); return "failed"
+            end
+        end
+    end
+
+    -- Swap: current -> previous, staging -> current. The old rollback copy is kept until the
+    -- new one exists, so a failed backup never leaves no way back.
+    local old_prev = previousDir() .. ".old"
+    purge(old_prev)
+    if lfs.attributes(previousDir(), "mode") == "directory" then os.rename(previousDir(), old_prev) end
     local ok1, err1 = os.rename(Updater.plugin_dir, previousDir())
-    if not ok1 then logger.warn("Kitchen Timer updater: backup failed", err1); purge(staging); return "failed" end
+    if not ok1 then
+        logger.warn("Kitchen Timer updater: backup failed", err1)
+        if lfs.attributes(old_prev, "mode") == "directory" then os.rename(old_prev, previousDir()) end
+        purge(staging); return "failed"
+    end
     local ok2, err2 = os.rename(staging, Updater.plugin_dir)
     if not ok2 then
         logger.warn("Kitchen Timer updater: install failed, restoring", err2)
         os.rename(previousDir(), Updater.plugin_dir)
+        if lfs.attributes(old_prev, "mode") == "directory" then os.rename(old_prev, previousDir()) end
         return "failed"
     end
+    purge(old_prev)
+    st:saveSetting("last_check", today); st:flush()
     logger.info("Kitchen Timer updater: installed version", rv)
     return "installed", rv
 end

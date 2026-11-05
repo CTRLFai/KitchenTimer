@@ -164,6 +164,9 @@ writeConfig('return {'); c = Updater.config(); eq(c.github_repo, "CTRLFai/Kitche
 -- it must never read or write Relic's files
 local f = io.open("updater.lua"); local src = f:read("*a"); f:close()
 assert(not src:find("relic_", 1, true), "updater touches a relic_* file")
+-- a release whose Lua doesn't compile must never be swapped in (it would remove the Roll back menu)
+assert(src:find("loadfile(staging", 1, true), "updater must compile-check staged files before the swap")
+assert(src:find("purge(old_prev)", 1, true), "updater must keep the old rollback copy until the new one exists")
 assert(not src:find("relic.koplugin", 1, true), "updater points at Relic's plugin folder")
 os.execute("rm -rf " .. SETTINGS)
 
