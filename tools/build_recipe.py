@@ -237,6 +237,11 @@ def parse(md, slug_from_file):
             raise RecipeError(f"'### {head}' is outside a known section")
     if not pull.get("food") or not pull.get("gear"):
         raise RecipeError("pull list needs both '### Food' and '### Gear'")
+    # Lessons that can be checked by machine live here (see the Lessons list in the meal-prep skill).
+    for item in pull["food"]:
+        if re.search(r"\bbroth\b|\bstock\b", item, re.I):
+            raise RecipeError(f"'{item}': he uses bouillon paste and hot water from the kettle, "
+                              "write it as '2 tsp bouillon paste + 2 cups hot water' (1 tsp per cup) with a kettle step")
     if not steps:
         raise RecipeError("no steps")
 
