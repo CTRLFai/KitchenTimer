@@ -1,7 +1,8 @@
 # KitchenTimer repo notes
 
 - `kitchentimer.koplugin/` is the KOReader plugin for Mike's Kindle PW2 (758x1024, 212 dpi, e-ink, no speaker). Recipes in `kitchentimer.koplugin/recipes/` ride the same hash-checked updater as the code.
-- Recipes are generated, never hand-edited: `NODE_PATH=$(npm root -g) node tools/convert_phone_page.js source/<slug>.phone.html <slug>`. The phone page (a claude.ai artifact) is the source of truth; `source/` holds a snapshot of it. When the phone page changes, refresh the snapshot and rerun the converter.
+- Recipes are generated, never hand-edited. New recipes (Kindle only, the week's meal-plan meals) are a markdown cook sheet, `source/<slug>.md`, built with `python3 tools/build_recipe.py source/<slug>.md`; the format is in the script's header and the same .md is the recipe saved to the Cooking project. Every step needs a real duration (prep included); the builder refuses untimed steps. Older recipes from a phone page use `NODE_PATH=$(npm root -g) node tools/convert_phone_page.js source/<slug>.phone.html <slug>`.
+- Builder test, from the repo root: `python3 tools/tests/test_build_recipe.py`.
 - Tests, from `kitchentimer.koplugin/`: `for t in ../tools/tests/test_*.lua; do luajit $t || echo FAIL $t; done`. LuaJIT is not preinstalled: build it from github.com/LuaJIT/LuaJIT (`make && make install`).
 - Before every push that changes the plugin: run the tests, run `python3 tools/make_manifest.py --bump` (the Kindle only updates when the manifest version goes up), exercise the changed screens in the KOReader emulator, and get one review from a fresh agent (ask Mike first with a cost estimate). Tell Mike plainly what was and was not tested.
 - This is a public repo and needs no tokens. Never commit any config or token.

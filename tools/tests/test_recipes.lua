@@ -184,10 +184,14 @@ local function check(slug, r)
     -- Storage: fridge and freezer handled separately.
     local f, z = false, false
     for _, sec in ipairs(r.storage or {}) do
-        if sec.title:lower():find("fridge") then f = true end
-        if sec.title:lower():find("freezer") then z = true end
+        local t = sec.title:lower()
+        if t:find("fridge") then f = true end
+        if t:find("freezer") then z = true end
+        -- fridge and freezer are handled separately, never mixed in one section
+        need(not (t:find("fridge") and t:find("freezer")), "storage section '" .. sec.title .. "' mixes fridge and freezer")
     end
-    need(f and z, "storage needs separate fridge and freezer sections")
+    -- a weeknight dinner may not be frozen; every recipe says how to keep leftovers in the fridge
+    need(f, "storage needs a fridge section")
 end
 
 local function strings_of(v, out)
@@ -197,11 +201,13 @@ local function strings_of(v, out)
 end
 
 local files = {}
-for name in io.popen("ls recipes/*.lua 2>/dev/null"):lines() do files[#files + 1] = name end
+-- KT_RECIPES_DIR lets the builder test check a recipe it just generated somewhere else.
+local rdir = os.getenv("KT_RECIPES_DIR") or "recipes"
+for name in io.popen("ls " .. rdir .. "/*.lua 2>/dev/null"):lines() do files[#files + 1] = name end
 assert(#files > 0, "no recipes found (run from kitchentimer.koplugin/)")
 
 for _, path in ipairs(files) do
-    local slug = path:match("recipes/(.-)%.lua$")
+    local slug = path:match("([^/]+)%.lua$")
     local before = #problems
     local f = assert(io.open(path, "rb")); local src = f:read("*a"); f:close()
     if src:find("\226\128\148") then bad(slug, "contains an em dash") end
