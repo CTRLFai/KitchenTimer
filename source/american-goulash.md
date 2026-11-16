@@ -16,7 +16,7 @@ finish: Dinner is on the table. Get leftovers into the fridge within 2 hours.
 - 1 tbsp Worcestershire
 - 1 1/2 tsp beef bouillon paste
 - 1 1/2 cups hot water (from the kettle)
-- 2 cans tomato sauce (8 oz each)
+- 2 cups crushed tomato (from the can)
 - 1 can diced tomatoes (15 oz)
 - 2 cups elbow macaroni
 - 2 bay leaves
@@ -34,7 +34,7 @@ finish: Dinner is on the table. Get leftovers into the fridge within 2 hours.
 
 ## Steps
 ### Prep: Open and measure (7 min)
-Open the 2 cans of tomato sauce and the can of diced tomatoes. Measure the 2 cups of macaroni. In the small bowl, mix the salt, pepper, onion powder, Italian seasoning and paprika. Set the bay leaves, garlic and Worcestershire next to the stove.
+Open the crushed tomatoes and the can of diced tomatoes. Measure 2 cups of the crushed tomatoes. Measure the 2 cups of macaroni. In the small bowl, mix the salt, pepper, onion powder, Italian seasoning and paprika. Set the bay leaves, garlic and Worcestershire next to the stove.
 
 ### Prep: Dice the onion (6 min)
 Dice the onion into small pieces, about the size of a pea.
@@ -59,7 +59,7 @@ In the measuring cup, stir **1 1/2 tsp beef bouillon paste** into **1 1/2 cups h
 Stir **1 tbsp minced garlic** and **1 tbsp Worcestershire** into the beef. Cook 1 minute, until you can smell the garlic.
 
 ### Pot: Add everything, bring to a boil (7 min)
-Pour in **2 cans tomato sauce**, **1 can diced tomatoes** with their juice, the bouillon from the measuring cup, **2 cups elbow macaroni** and **2 bay leaves**. Stir well, making sure the macaroni is under the liquid.
+Pour in **2 cups crushed tomato**, **1 can diced tomatoes** with their juice, the bouillon from the measuring cup, **2 cups elbow macaroni** and **2 bay leaves**. Stir well, making sure the macaroni is under the liquid.
 Turn the heat to medium-high. Move on once it's bubbling across the whole surface.
 
 ### Pot: Simmer with the lid on (14 min)
